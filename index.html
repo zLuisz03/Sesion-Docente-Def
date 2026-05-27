@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipientes Dinámicos 3D | Optimización con Multiplicadores de Lagrange</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📐</text></svg>">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <i class="fa-solid fa-cubes logo-icon"></i>
+            <div>
+                <h1>Recipientes Dinámicos</h1>
+                <span id="logoSubtitle">Morfosis 3D & Lagrange</span>
+            </div>
+        </div>
+        
+        <div class="header-controls">
+            <!-- Indicador Dinámico de Área de Lectura -->
+            <div class="material-input-container" style="border-color: rgba(255,255,255,0.06); cursor: default; user-select: none;">
+                <label>Área de Superficie (S):</label>
+                <span id="totalAreaBadge" style="color: var(--primary); font-family: var(--font-mono); font-weight: 700; font-size: 1.05rem; margin: 0 4px 0 8px;">1500.0</span>
+                <span class="unit">cm²</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- PANEL DE CONTROL LATERAL -->
+        <section class="sidebar">
+            
+            <!-- 1. SELECCIONAR LA FORMA -->
+            <div id="shapeSelectorSection">
+                <h2 class="section-title"><i class="fa-solid fa-shapes"></i> 1. Selecciona la Forma</h2>
+                <div class="shape-selector-grid">
+                    <div class="shape-card active" data-shape="sphere">
+                        <i class="fa-solid fa-circle shape-icon"></i>
+                        <span class="shape-name">Esfera</span>
+                    </div>
+                    <div class="shape-card" data-shape="cylinder">
+                        <i class="fa-solid fa-database shape-icon"></i>
+                        <span class="shape-name">Cilindro</span>
+                    </div>
+                    <div class="shape-card" data-shape="cone">
+                        <i class="fa-solid fa-filter shape-icon" style="transform: rotate(180deg);"></i>
+                        <span class="shape-name">Cono</span>
+                    </div>
+                    <div class="shape-card" data-shape="prism">
+                        <i class="fa-solid fa-cube shape-icon"></i>
+                        <span class="shape-name">Prisma Cuadrado</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. AJUSTAR DIMENSIONES MULTIDIMENSIONALES -->
+            <div id="dimensionsSection">
+                <h2 class="section-title"><i class="fa-solid fa-sliders"></i> 2. Ajustar Dimensiones</h2>
+                <div class="controls-card" id="dimensionsCard">
+                    <!-- Control para Esfera (R) -->
+                    <div id="control-sphere" class="control-group">
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-label">Radio (R)</span>
+                                <span class="slider-value-badge" id="sphereRadiusVal">10.9 cm</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="sphereRadiusSlider" class="custom-slider" min="1" max="25" step="0.1" value="10.9">
+                            </div>
+                            <div class="slider-limits">
+                                <span>1.0 cm</span>
+                                <span>25.0 cm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Control para Cilindro (R e H) -->
+                    <div id="control-cylinder" class="control-group" style="display: none;">
+                        <div class="slider-group" style="margin-bottom: 1.2rem;">
+                            <div class="slider-header">
+                                <span class="slider-label">Radio de la Base (R)</span>
+                                <span class="slider-value-badge" id="cylinderRadiusVal">8.9 cm</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="cylinderRadiusSlider" class="custom-slider" min="1" max="20" step="0.1" value="8.9">
+                            </div>
+                            <div class="slider-limits">
+                                <span>1.0 cm</span>
+                                <span>20.0 cm</span>
+                            </div>
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-label">Altura (H)</span>
+                                <span class="slider-value-badge" id="cylinderHeightVal">17.8 cm</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="cylinderHeightSlider" class="custom-slider" min="1" max="40" step="0.1" value="17.8">
+                            </div>
+                            <div class="slider-limits">
+                                <span>1.0 cm</span>
+                                <span>40.0 cm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Control para Cono (R e H) -->
+                    <div id="control-cone" class="control-group" style="display: none;">
+                        <div class="slider-group" style="margin-bottom: 1.2rem;">
+                            <div class="slider-header">
+                                <span class="slider-label">Radio de la Base (R)</span>
+                                <span class="slider-value-badge" id="coneRadiusVal">10.9 cm</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="coneRadiusSlider" class="custom-slider" min="1" max="20" step="0.1" value="10.9">
+                            </div>
+                            <div class="slider-limits">
+                                <span>1.0 cm</span>
+                                <span>20.0 cm</span>
+                            </div>
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-label">Altura (H)</span>
+                                <span class="slider-value-badge" id="coneHeightVal">30.9 cm</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="coneHeightSlider" class="custom-slider" min="1" max="40" step="0.1" value="30.9">
+                            </div>
+                            <div class="slider-limits">
+                                <span>1.0 cm</span>
+                                <span>40.0 cm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Control para Prisma (x e y) -->
+                    <div id="control-prism" class="control-group" style="display: none;">
+                        <div class="slider-group" style="margin-bottom: 1.2rem;">
+                            <div class="slider-header">
+                                <span class="slider-label">Lado de la Base (x)</span>
+                                <span class="slider-value-badge" id="prismWidthVal">15.8 cm</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="prismWidthSlider" class="custom-slider" min="1" max="25" step="0.1" value="15.8">
+                            </div>
+                            <div class="slider-limits">
+                                <span>1.0 cm</span>
+                                <span>25.0 cm</span>
+                            </div>
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-label">Altura (y)</span>
+                                <span class="slider-value-badge" id="prismHeightVal">15.8 cm</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="prismHeightSlider" class="custom-slider" min="1" max="40" step="0.1" value="15.8">
+                            </div>
+                            <div class="slider-limits">
+                                <span>1.0 cm</span>
+                                <span>40.0 cm</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. METRICAS Y RESULTADOS -->
+            <div>
+                <h2 class="section-title"><i class="fa-solid fa-chart-line"></i> 3. Métricas y Resultados</h2>
+                <div class="dashboard-card">
+                    <div class="result-main">
+                        <div class="result-main-label" id="resultLabel">Volumen Contenido</div>
+                        <div class="result-volume-display" id="volumeDisplay">5462.2 cm³</div>
+                        <div class="result-volume-liters" id="volumeLitersDisplay">5.46 Litros</div>
+                    </div>
+
+                    <div class="dimensions-grid" id="metricsGrid">
+                        <div class="dim-box">
+                            <span class="dim-box-label" id="dim1Label">Radio (R)</span>
+                            <span class="dim-box-value" id="dim1Val">10.93 <span class="unit">cm</span></span>
+                        </div>
+                        <div class="dim-box">
+                            <span class="dim-box-label" id="dim2Label">Altura (H)</span>
+                            <span class="dim-box-value" id="dim2Val">-- <span class="unit">cm</span></span>
+                        </div>
+                        <div class="dim-box">
+                            <span class="dim-box-label" id="dim3Label">Área Base (A<sub>b</sub>)</span>
+                            <span class="dim-box-value" id="dim3Val">375.0 <span class="unit">cm²</span></span>
+                        </div>
+                        <div class="dim-box">
+                            <span class="dim-box-label" id="dim4Label">Área Lateral (A<sub>l</sub>)</span>
+                            <span class="dim-box-value" id="dim4Val">1125.0 <span class="unit">cm²</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Eficiencia y Comparativa para el Área Actual -->
+                    <div class="optimization-box" id="optimizationBox">
+                        <div class="opt-header">
+                            <span class="opt-header-title"><i class="fa-solid fa-circle-check"></i> Eficiencia del Volumen</span>
+                            <span class="opt-header-percent" id="efficiencyPercent">100%</span>
+                        </div>
+                        <div class="opt-progress-bar-container">
+                            <div class="opt-progress-bar" id="progressBar" style="width: 100%;"></div>
+                        </div>
+                        <div class="opt-stats">
+                            <span>Volumen Óptimo para esta Área:</span>
+                            <span class="opt-max-value" id="maxVolumeVal">5462.2 cm³</span>
+                        </div>
+                    </div>
+
+                    <button class="btn-optimize disabled" id="btnOptimize">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Optimizar Proporción
+                    </button>
+                </div>
+            </div>
+
+
+        </section>
+
+        <!-- VISOR 3D -->
+        <section class="viewport-container">
+            <!-- Contenedor para Etiquetas 3D Flotantes en comparación -->
+            <div id="comparisonLabelsContainer" style="position: absolute; inset: 0; pointer-events: none; z-index: 10;"></div>
+
+            <!-- Loading Indicator -->
+            <div class="three-loading" id="threeLoading">
+                <i class="fa-solid fa-spinner"></i>
+                <span>Cargando Entorno 3D...</span>
+            </div>
+
+            <!-- Canvas para Three.js -->
+            <canvas id="canvas3d"></canvas>
+
+            <!-- Información flotante superior izquierda -->
+            <div class="viewport-info-tag">
+                <div class="viewport-info-title">Recipiente Activo</div>
+                <div class="viewport-info-desc" id="activeShapeTag">Esfera</div>
+            </div>
+
+            <!-- Botones flotantes inferiores -->
+            <div class="viewport-overlay">
+                <button class="overlay-btn active" id="btnAutoRotate">
+                    <i class="fa-solid fa-arrows-spin"></i> Rotar
+                </button>
+                <button class="overlay-btn" id="btnResetCamera">
+                    <i class="fa-solid fa-camera"></i> Cámara
+                </button>
+                <button class="overlay-btn" id="btnWireframe">
+                    <i class="fa-solid fa-border-all"></i> Estructura
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Cargamos las librerías 3D mediante CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Script Principal de la aplicación -->
+    <script src="app.js"></script>
+</body>
+</html>
